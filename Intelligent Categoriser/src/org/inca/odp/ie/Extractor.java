@@ -1,19 +1,27 @@
 /*
  * Created on Feb 15, 2005 2:47:02 PM
  */
-package org.inca.odp.content.sql;
+package org.inca.odp.ie;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Iterator;
+import java.util.Vector;
+
+import org.inca.util.CollisionableHashtable;
 
 /**
  * @author achim
  */
-public class NounExtractor {
+public class Extractor {
+    final private static int ROWS_PER_QUERY = 5;
     final public static String DB_URL = "jdbc:mysql://localhost/odp";
     final public static String DB_USER = "odp";
     final public static String DB_PASSWD = "odp";
@@ -34,7 +42,8 @@ public class NounExtractor {
         } 
     }
     
-    private void extract(String name) throws SQLException {
+    private Vector getLinks(String name) throws SQLException {
+        Vector result = new Vector();
         // get links for category name
         String selectStmt = "SELECT url FROM links,cat2link "
             + "INNER JOIN categories ON cat2link.catId=categories.id "
@@ -48,15 +57,16 @@ public class NounExtractor {
         ResultSet rs = stmt.getResultSet();
         
         while ( rs.next() ) {
-            System.out.println(rs.getString("url"));
+            result.add(rs.getString("url"));
         }
+        
+        return result;
     }
     
     public void go() throws SQLException {
         dbConnect();
         
-        // for each category, get links and extract nouns from link
-        // count categories first.
+        // get links for each category
         Statement stmt  = _connection.createStatement();
         ResultSet rs = stmt.executeQuery("SELECT COUNT(name) FROM categories");
         
@@ -68,27 +78,48 @@ public class NounExtractor {
         }
         
         long cat = 0;
-        long catPerQ = 5;
         numCat = 15;
         
         while (cat < numCat) {
-            rs = stmt.executeQuery("SELECT name from categories LIMIT " + cat + "," + catPerQ);
+            rs = stmt.executeQuery("SELECT name from categories LIMIT " + cat + "," + ROWS_PER_QUERY);
             
             while ( rs.next() ) {
-                extract(rs.getString("name"));
+                Vector links = getLinks(rs.getString("name"));
+            
+	            for (Iterator iter = links.iterator(); iter.hasNext();) {
+	                URL url = null;
+	                String link = (String) iter.next();
+                    try {
+                        url = new URL(link);
+                    } catch (MalformedURLException e) {
+                        System.err.println("malformed url :"   + link);
+                    }
+                    
+                    PlaintextConverter pc = new PlaintextConverter(url);
+                    Tagger tagger = null;
+                    try {
+                        tagger = new TreeTagger(pc.getPlaintext());
+                    } catch (IOException e1) {
+                        System.err.println("error extracting plaintext for " + url);
+                    }
+                    
+                    try {
+                        CollisionableHashtable tags = tagger.getTags();
+                    } catch (IOException e2) {
+                        System.err.println("error tagging " + url);
+                    }
+	            }
             }
             
-            cat += catPerQ;
+            cat += ROWS_PER_QUERY;
         }
         
         _connection.close();
     }
     
     public static void main(String[] args) throws SQLException {
-        new NounExtractor().go();
+        new Extractor().go();
     }
-//    SELECT linkId FROM cat2link INNER JOIN categories ON cat2link.catId=categories.id WHERE categories.name='/Arts/Performing_Arts/Acting/Actors_and_Actresses/B/Brosnan,_Pierce'; 
-//    SELECT url FROM links,cat2link INNER JOIN categories ON cat2link.catId=categories.id WHERE categories.name='/Arts/Performing_Arts/Acting/Actors_and_Actresses/B/Brosnan,_Pierce' AND links.id=cat2link.linkId
 //    ~/Projects/studienarbeit/TreeTagger/cmd/tt-inca text|grep -v -f removedTags|grep "^[A-Z]" 
 
 }
