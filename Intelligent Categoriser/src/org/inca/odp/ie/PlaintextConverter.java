@@ -3,157 +3,92 @@
  */
 package org.inca.odp.ie;
 
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.Hashtable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import javax.swing.text.MutableAttributeSet;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLEditorKit.ParserCallback;
-import javax.swing.text.html.parser.ParserDelegator;
+import org.inca.util.net.HTTPReader;
 
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
+import com.quiotix.html.parser.ParseException;
 
 /**
  * @author achim
  */
-public class PlaintextConverter {
-    private final static String mySAXDriver = "gnu.xml.aelfred2.SAXDriver";
-    protected final static String NL = System.getProperty("line.separator");
-    private class HTMLHandler extends ParserCallback {
-        private StringBuffer _text = null;
-        private boolean _inBody = false;
-        
-        public HTMLHandler() {
-            _text = new StringBuffer();
-        }
-        
-        public void handleStartTag(HTML.Tag t, MutableAttributeSet a, int pos) {
-            if (t.equals(HTML.Tag.BODY) ) {
-                _inBody = true;
-            }
-        }
-        
-        public void handleEndTag(HTML.Tag t, int pos) {
-            if (t.equals(HTML.Tag.BODY) ) {
-                _inBody = false;
-            }
-        }
-        
-        public void handleText(char[] data, int pos) {
-            if ( _inBody ) {
-                _text.append(data);
-                _text.append(NL);
-            }
-        }
-        
-        public StringBuffer getPlaintext() {
-            return _text;
-        }
-    }
-
-    private class XMLHandler extends DefaultHandler{
-        private StringBuffer _text;
-        public XMLHandler() {
-            super();
-            _text = new StringBuffer();
-        }
-        public void characters(char[] ch, int start, int length) {
-            _text.append(ch);
-            _text.append(NL);
-        }
-
-        public StringBuffer getPlaintext() {
-            return _text;
-        }
-    }
+public class PlaintextConverter {    
     private URL _url = null;
+    private Pattern _whitespace = Pattern.compile("\\s+");
     
+    private static final Hashtable MimetypeMapping = new Hashtable();
+    
+    static {
+        MimetypeMapping.put("text/html", XMLPlaintextExtractor.class);
+        MimetypeMapping.put("text/xml", XMLPlaintextExtractor.class);
+    }
+        
     public PlaintextConverter(URL url) {
     	this._url = url;
 	}
     
-    private boolean isXHTML() throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(_url.openStream()));
-        if ( in.markSupported() ) {
-            in.mark(256);
+    private PlaintextExtractor getInstanceForContentType(String contentType, String data) throws NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        if (MimetypeMapping.containsKey(contentType) ) {
+            Class c = (Class) MimetypeMapping.get(contentType);
+            Constructor constructor = c.getConstructor(new Class[] { String.class } );
             
-            String line = in.readLine().toLowerCase();
+            return (PlaintextExtractor)constructor.newInstance(new Object[] { data } );
+        } else {
+            throw new InstantiationException("unsupported mimetype: " + contentType);
+        }
+    }
 
-            in.reset();
-            
-            if ( line.indexOf("doctype") != -1 && line.indexOf("xhtml") != -1) {
-                // assume document is xhtml, use sax parser to get plaintext
-                return true;
-            } else {           
-                return false;
-            }
-        } else {
-            throw new IOException("mark not supported in BufferedReader.");
-        }
-    }
-    
-    private StringBuffer parseAsXML() throws IOException {
-        System.setProperty("org.xml.sax.driver", mySAXDriver);
-        XMLReader xr = null;
-        try {
-            xr = XMLReaderFactory.createXMLReader();
-        } catch (SAXException e1) {
-            System.err.println("could not create xml parser.");
-        }
-        
-        XMLHandler xh = new XMLHandler();
-        xr.setContentHandler(xh);
-        
-        if (_url.getProtocol().compareToIgnoreCase("http") == 0) {
-            HttpURLConnection connection = null;
-            connection = (HttpURLConnection) _url.openConnection();
-            try {
-                xr.parse(new InputSource(connection.getInputStream()));
-            } catch (SAXException e) {
-                // fall back to parsing as HTML
-                return parseAsHTML();
-            }
-            
-            return xh.getPlaintext();
-        } else {
-            return null;
-        }
-    }
-    
-    private StringBuffer parseAsHTML() throws IOException {
-        if (_url.getProtocol().compareToIgnoreCase("http") == 0) {
-            HttpURLConnection connection = null;
-            connection = (HttpURLConnection) _url.openConnection();
-
-            ParserDelegator parser = new ParserDelegator();
-            HTMLHandler callback = new HTMLHandler();
-            parser.parse(new InputStreamReader(connection.getInputStream() ), callback, false);
-            
-            return callback.getPlaintext();
-        } else {
-            return null;
-        }
-    }
-    
     public StringBuffer getPlaintext() throws IOException {
-        if ( isXHTML () ) {
-            // attempt to parse with SAX
-            return parseAsXML();
+        String contentType = URLConnection.guessContentTypeFromStream( new BufferedInputStream(_url.openStream()));
+        HTTPReader reader = new HTTPReader(_url);
+        
+        String data = reader.read();
+        Matcher matcher = _whitespace.matcher(data);
+        data = matcher.replaceAll(" ");
+        
+        data = EntityMapper.mapEntities(data);
+
+        PlaintextExtractor pc = null;
+//        try {
+//            pc = getInstanceForContentType(contentType, data);
+//        } catch (IllegalArgumentException e) {
+//            e.printStackTrace();
+//        } catch (NoSuchMethodException e) {
+//            e.printStackTrace();
+//        } catch (InstantiationException e) {
+//            System.err.println("unsupported mimetype: " + contentType);
+//        } catch (IllegalAccessException e) {
+//            e.printStackTrace();
+//        } catch (InvocationTargetException e) {
+//            e.printStackTrace();
+//        }
+        
+        if (contentType.compareToIgnoreCase("text/html") == 0
+                || contentType.compareToIgnoreCase("text/xml") == 0) {
+            pc = new XMLPlaintextExtractor(data);
         } else {
-            return parseAsHTML();
+            throw new IOException("unsupported mime type: " + contentType);
         }
+
+        return pc.getPlaintext();
     }
     
-    public static void main(String [] args) throws IOException {
-        PlaintextConverter pc = new PlaintextConverter( new URL("http://wordpress.org/"));
-        
-        System.out.println(pc.getPlaintext().toString());
+    public static void main(String[] args) throws MalformedURLException,
+            ParseException, IOException {
+        //"http://www.cnn.com/2005/SHOWBIZ/TV/01/23/carson.obit/"
+        PlaintextConverter pc = new PlaintextConverter(new URL(
+                "http://www.cnn.com/2005/SHOWBIZ/TV/01/23/carson.obit/"));
+        StringBuffer text = pc.getPlaintext();
+        System.out.println(text.toString());
     }
 }
