@@ -131,7 +131,7 @@ public class XMLPlaintextExtractor extends PlaintextExtractor {
 	private boolean isXHTML() {
 	    int lookAhead = Math.min(_data.length(), 511);
         if (_data.substring(0, lookAhead).indexOf("doctype") != -1
-                && _data.substring(0, 511).indexOf("xhtml") != -1) {
+                && _data.substring(0, lookAhead).indexOf("xhtml") != -1) {
             // assume document is xhtml, use sax parser to get plaintext
             return true;
         } else {

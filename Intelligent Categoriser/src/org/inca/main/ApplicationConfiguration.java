@@ -43,56 +43,64 @@ public class ApplicationConfiguration {
         LogHelper.initInstance();
 
         ConfigurationFactory factory = new ConfigurationFactory();
-
-        if (configLocation.equals("")) {
-            logger
-                .info("no configuration file provided. attempting to guess one");
-
-            // try via URL first
-            logger.info("trying getResource()");
-            URL configURL = ApplicationConfiguration.class
-                .getResource(_configFilename);
-
-            factory.setConfigurationURL(configURL);
+        
+        URL configURL = getClass().getResource(configLocation);
+        
+        if (null == configURL) {
+            factory.setConfigurationFileName(configLocation);
 
             try {
                 _configuration = factory.getConfiguration();
-
             } catch (ConfigurationException e) {
-                logger.error("no config at " + configURL);
-
-                String workDir = System.getProperty("user.dir");
-                String homeDir = System.getProperty("user.home");
-                String fs = System.getProperty("file.separator");
-
-                String[] locations = { "file://" + workDir + fs + _configFilename,
-                        "file://" + homeDir + fs + _configFilename };
-
-                for (int i = 0; i < locations.length; i++) {
-                    String location = locations[i];
-                    logger.info("trying " + location);
-                    factory.setConfigurationFileName(location);
-                    try {
-                        _configuration = factory.getConfiguration();
-                        return;
-                    } catch (ConfigurationException f) {
-                        logger.error("no config at " + location);
-                        continue;
-                    }
-                }
-                
-                logger.fatal("failed to load configuration.");
+                logger.error("error loading configuration from " + configURL);
+                autoSetup(factory);
             }
         } else {
-            URL configURL = getClass().getResource(_configFilename);
             factory.setConfigurationURL(configURL);
-
             try {
                 _configuration = factory.getConfiguration();
             } catch (ConfigurationException e) {
-                logger.fatal("error loading configuration from " + configURL);
+                logger.error("error loading configuration from " + configURL);
+                autoSetup(factory);
             }
         }
+    }
+    
+    private void autoSetup(ConfigurationFactory factory) {
+        URL configURL = getClass().getResource(_configFilename);
+
+	    if (null == configURL) {
+	        String workDir = System.getProperty("user.dir");
+	        String homeDir = System.getProperty("user.home");
+	        String fs = System.getProperty("file.separator");
+	
+	        String[] locations = { workDir + fs + _configFilename,
+	                			   homeDir + fs + _configFilename };
+	
+	        for (int i = 0; i < locations.length; i++) {
+	            String location = locations[i];
+	            logger.info("trying " + location);
+
+	            factory.setConfigurationFileName(location);
+	            try {
+	                _configuration = factory.getConfiguration();
+	                return;
+	            } catch (ConfigurationException f) {
+	                logger.error("no config at " + location);
+	                continue;
+	            }
+	        }
+	        
+	        logger.fatal("failed to load configuration.");
+	    } else {
+		    factory.setConfigurationURL(configURL);
+
+		    try {
+		        _configuration = factory.getConfiguration();	
+		    } catch (ConfigurationException e) {
+		        logger.fatal("no config at " + configURL);
+		    }
+	    }
     }
 
     public static Configuration getConfiguration() {

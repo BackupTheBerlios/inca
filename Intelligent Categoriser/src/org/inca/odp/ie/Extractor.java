@@ -242,6 +242,7 @@ public class Extractor {
 	            continue;
 	        } catch (IOException e) {
 	            logger.error("error getting plaintext.");
+	            logger.error(e);
 	            continue;
 	        }
 	        
@@ -261,7 +262,10 @@ public class Extractor {
         }
     }
 
-    public void go() throws SQLException {
+    public void go(long startCat) throws SQLException {
+        System.setProperty("sun.net.client.defaultConnectTimeout", "5000");
+        System.setProperty("sun.net.client.defaultReadTimeout", "10000");
+
         dbConnect();
         
         // get links for each category
@@ -270,14 +274,13 @@ public class Extractor {
         
         long numCat = 0;
         if ( rs.next() ) {
-            logger.info("processing " + rs.getLong(1) + " categories.");
+            numCat = rs.getLong(1);
+            logger.info("processing " + numCat + " categories.");
         } else {
             throw new SQLException("failed to count categories.");
         }
         
-        long cat = 0;
-        numCat = 15;
-        
+        long cat = startCat;
         int ROWS_PER_QUERY = config.getInt("extractor.rowsPerQuery");
         
         while (cat < numCat) {
@@ -305,6 +308,11 @@ public class Extractor {
     public static void main(String[] args) throws SQLException {
         ApplicationConfiguration.initInstance();
         config = ApplicationConfiguration.getConfiguration();
-        new Extractor().go();
+        
+        if (null == args) {
+            new Extractor().go(0);
+        } else if (args[0].compareToIgnoreCase("--resume") == 0) {
+            new Extractor().go(new Long(args[1]).longValue());
+        }
     }
 }

@@ -21,6 +21,7 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.Map.Entry;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 import org.inca.main.ApplicationConfiguration;
 import org.inca.util.CountingHashtable;
@@ -30,6 +31,7 @@ import org.inca.util.sys.StreamGobbler;
  * @author achim
  */
 public class TreeTagger extends Tagger {
+    private static Configuration config = ApplicationConfiguration.getConfiguration();
     private static Logger logger = Logger.getLogger(TreeTagger.class);
     
     private static final Hashtable INTERESTING_TAGS = new Hashtable();
@@ -65,7 +67,7 @@ public class TreeTagger extends Tagger {
         CountingHashtable tags = new CountingHashtable();
         Process taggerProc = Runtime.getRuntime().exec( new String[] {
                 "/bin/sh", "-c", 
-                "/home/achim/Projects/studienarbeit/TreeTagger/cmd/tt-inca" });
+                config.getString("tagger.cmd") });
         StreamGobbler errorGobbler = new StreamGobbler(taggerProc.getErrorStream());
         StreamGobbler outputGobbler = new StreamGobbler(taggerProc.getInputStream());
         

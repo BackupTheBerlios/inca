@@ -36,7 +36,8 @@ public class LogHelper {
         URL configURL = LogHelper.class.getResource(configLocation);
 
         if (null == configURL) {
-            System.out.println("no log4j config foundat at default location.");
+            System.out.println("no log4j config found at default location.");
+            
             String workDir = System.getProperty("user.dir");
             String homeDir = System.getProperty("user.home");
             String fs = System.getProperty("file.separator");
@@ -44,17 +45,13 @@ public class LogHelper {
             String[] locations = { "file://" + workDir + fs + _configFilename,
                     "file://" + homeDir + fs + _configFilename };
             
-            for (int i = 0; i < locations.length; i++) {
+            for (int i = 0; i < locations.length && configURL == null; i++) {
                 String location = locations[i];
                 System.out.println("trying " + location);
                 
                 try {
                     configURL = new URL(location);
                 } catch (MalformedURLException e) {
-                    continue;
-                }
-
-                if (null == configURL) {
                     continue;
                 }
             }
@@ -64,8 +61,9 @@ public class LogHelper {
                 System.exit(0);
             }
         }
+
         System.out.println("using " + configURL.toString() +" as log4j config file.");
-        
+	        
         // ensure that we use the default xml parser shipped with jdk 1.4
         // common pitfall: using gnujaxp.jar will break when loading an xml 
         // since the dtd referenced therein cannot be resolved

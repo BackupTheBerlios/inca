@@ -55,6 +55,8 @@ public class HTTPReader {
     private void openConnection() throws IOException {
         try {
             _connection = (HttpURLConnection) _url.openConnection();
+        } catch(ClassCastException e) {
+            throw new ConnectionFailedException("no protocol handler for " + _url.getProtocol() );
         } catch (IOException e) {
             throw new ConnectionFailedException("error connection to " + _url.getHost() + ":" + _url.getPort());
         }

@@ -137,7 +137,7 @@ public class PlaintextConverter {
         LogHelper.initInstance();
         //"http://www.cnn.com/2005/SHOWBIZ/TV/01/23/carson.obit/"
         PlaintextConverter pc = new PlaintextConverter(new URL(
-                "http://www.coobics.com/classifieds/html/gp5.html"));        
+                "ftp://ftp.cs.ubc.ca/pub/local/edmonds/anime-fan-works/"));        
         StringBuffer text = pc.getPlaintext();
         System.out.println(text.toString());
     }
