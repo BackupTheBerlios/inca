@@ -9,8 +9,8 @@
   </appender>
   <appender name="file" class="org.apache.log4j.RollingFileAppender">
     <param name="File" value="log.txt"/>
-	<param name="MaxFileSize" value="102400"/>
-	<param name="MaxBackupIndex" value="1"/>
+	<param name="MaxFileSize" value="1048576"/>
+	<param name="MaxBackupIndex" value="3"/>
 	<param name="Append" value="false"/>
     <layout class="org.apache.log4j.PatternLayout">
       <param name="ConversionPattern" value="%p %t %c - %m%n"/>

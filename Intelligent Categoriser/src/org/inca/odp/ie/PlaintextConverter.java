@@ -11,7 +11,9 @@ import java.util.Hashtable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
+import org.inca.main.ApplicationConfiguration;
 import org.inca.odp.ie.datasources.EntityMapper;
 import org.inca.odp.ie.datasources.PlaintextExtractor;
 import org.inca.odp.ie.datasources.XMLPlaintextExtractor;
@@ -25,7 +27,7 @@ import com.quiotix.html.parser.ParseException;
  * @author achim
  */
 public class PlaintextConverter {
-    private static Logger logger = LogHelper.getLogger();
+    private static Logger logger = LogHelper.getLogger();;
     private URL _url = null;
     private Pattern _whitespace = Pattern.compile("\\s+");
     
@@ -104,7 +106,7 @@ public class PlaintextConverter {
     public static void main(String[] args) throws ParseException, IOException, ResourceNotFoundException {
         //"http://www.cnn.com/2005/SHOWBIZ/TV/01/23/carson.obit/"
         PlaintextConverter pc = new PlaintextConverter(new URL(
-                "http://www.cnn.com/2005/SHOWBIZ/TV/01/23/carson.obit/"));
+                "http://saninji.homestead.com/"));        
         StringBuffer text = pc.getPlaintext();
         System.out.println(text.toString());
     }

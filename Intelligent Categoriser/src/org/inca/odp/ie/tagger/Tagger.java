@@ -12,10 +12,25 @@ import org.inca.util.CountingHashtable;
  */
 public abstract class Tagger {
     protected StringBuffer _data = null;
+    
+    // total number of words in documents
+    protected int _wordCount;
+    
+    //number of tagged words
+    protected int _taggedWordCount;
 
     public Tagger(StringBuffer data) {        
         this._data = data;
+        _wordCount = 0;
+        _taggedWordCount = 0;
     }
     
     abstract public CountingHashtable getTags() throws TaggerException, IOException;
+    public int getTaggedWordCount() {
+        return _taggedWordCount;
+    }
+
+    public int getWordCount() {
+        return _wordCount;
+    }  
 }

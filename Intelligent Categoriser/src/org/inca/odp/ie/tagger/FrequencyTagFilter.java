@@ -15,8 +15,6 @@ import org.inca.util.CountingHashtable;
  * @author achim
  */
 public class FrequencyTagFilter extends TagFilter {
-    private final static int NUM_TAGS = 50;
-
     public FrequencyTagFilter(CountingHashtable tags) {
         super(tags);
     }

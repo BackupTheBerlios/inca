@@ -82,10 +82,10 @@ public class HTTPReader {
             httpConnection.connect();
             int responseCode = httpConnection.getResponseCode();
             
-            logger.debug(httpConnection.getResponseCode() + " " + httpConnection.getResponseMessage());
-            if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+            logger.debug(responseCode + " " + httpConnection.getResponseMessage());
+            if (responseCode != HttpURLConnection.HTTP_OK) {
                 httpConnection.disconnect();
-                throw new ResourceNotFoundException(_url + ": 404 not found.");
+                throw new ResourceNotFoundException(_url + ": " + httpConnection.getResponseMessage() );
             }
             
             BufferedReader in = new BufferedReader( new InputStreamReader( httpConnection.getInputStream() ) );

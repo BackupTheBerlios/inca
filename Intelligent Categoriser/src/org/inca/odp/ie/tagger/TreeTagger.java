@@ -34,7 +34,7 @@ public class TreeTagger extends Tagger {
     
     private static final Hashtable INTERESTING_TAGS = new Hashtable();
     private final static String _NL = System.getProperty("line.separator");
-    
+
     static {
         INTERESTING_TAGS.put("CD", new Boolean(true));
         INTERESTING_TAGS.put("FW", new Boolean(true));
@@ -92,8 +92,8 @@ public class TreeTagger extends Tagger {
         
         BufferedReader br = new BufferedReader(new StringReader(outputGobbler.getData().toString() ) ); 
         
-        int count = 0;
-        int words = 0;
+        _wordCount = 0;
+        _taggedWordCount = 0;
         String line;
         while ( null != ( line = br.readLine() )) {
             StringTokenizer st = new StringTokenizer(line, "\t ");
@@ -104,22 +104,24 @@ public class TreeTagger extends Tagger {
             
             String tag = st.nextToken();
             String lemma = st.nextToken();
-            ++words;
+            ++_wordCount;
             
             if ( INTERESTING_TAGS.containsKey(tag)) {
-                ++count;
+                ++_taggedWordCount;
                 tags.put(new TaggedLemma(lemma, tag));
             }
         }
         
         br.close();
         
-        logger.info("total words: " + words);
-        logger.info("tagged words: " + count);
+        logger.info("total words: " + _wordCount);
+        logger.info("tagged words: " + _taggedWordCount);
         
         return tags;
     }
     
+  
+
     public static void main(String[] args) throws TaggerException, IOException {
         File f = new File("/home/achim/Projects/workspace/GateEval/text");
         
