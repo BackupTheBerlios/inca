@@ -28,7 +28,6 @@ import org.inca.odp.ie.tagger.Tagger;
 import org.inca.odp.ie.tagger.TaggerException;
 import org.inca.odp.ie.tagger.TreeTagger;
 import org.inca.util.CountingHashtable;
-import org.inca.util.logging.LogHelper;
 import org.inca.util.net.ConnectionFailedException;
 import org.inca.util.net.ResourceNotFoundException;
 
@@ -37,7 +36,7 @@ import org.inca.util.net.ResourceNotFoundException;
  */
 public class Extractor {
     static Configuration config;
-    static Logger logger;
+    static Logger logger = Logger.getLogger(Extractor.class);
 
     private Connection _connection;
 
@@ -92,7 +91,7 @@ public class Extractor {
         return id;
     }
     
-    public static String getPlaceholder(int length, String placeholder, String delim) {
+    private static String getPlaceholder(int length, String placeholder, String delim) {
         String result = "";
         for (int i = 0; i < length; i++) {
             result += placeholder;
@@ -104,7 +103,7 @@ public class Extractor {
         return result;
     }
     
-    public static String join(String delim, String[] s) {
+    private static String join(String delim, String[] s) {
         String result = "";
         for (int i = 0; i < s.length; i++) {
             result += s[i];
@@ -306,7 +305,6 @@ public class Extractor {
     public static void main(String[] args) throws SQLException {
         ApplicationConfiguration.initInstance();
         config = ApplicationConfiguration.getConfiguration();
-        logger = LogHelper.getLogger();
         new Extractor().go();
     }
 }

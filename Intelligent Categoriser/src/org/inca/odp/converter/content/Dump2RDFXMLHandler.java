@@ -1,7 +1,7 @@
 /*
  * Created on Dec 16, 2004 3:22:00 PM
  */
-package org.inca.odp.content.rdf;
+package org.inca.odp.converter.content;
 
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
@@ -18,7 +18,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * @author achim
  */
-public class ContentXMLHandler extends DefaultHandler {
+public class Dump2RDFXMLHandler extends DefaultHandler {
     private String _currentTag = "";
     private String _currentAbout = "";
     private String _currentTopicID = "";
@@ -37,7 +37,7 @@ public class ContentXMLHandler extends DefaultHandler {
             + "  xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"" + NL
             + "  xmlns:dc=\"http://purl.org/metadata/dublin_core#\">";
 
-    public ContentXMLHandler(String filename) throws UnsupportedEncodingException,
+    public Dump2RDFXMLHandler(String filename) throws UnsupportedEncodingException,
             FileNotFoundException {
         super();
         _writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(

@@ -16,7 +16,6 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 
 import org.apache.log4j.Logger;
-import org.inca.util.logging.LogHelper;
 
 /**
  * @author achim
@@ -24,7 +23,7 @@ import org.inca.util.logging.LogHelper;
  * issues such as invalid hostnames in certificates 
  */
 public class HTTPReader {
-    private static Logger logger = LogHelper.getLogger();
+    private static Logger logger = Logger.getLogger(HTTPReader.class);
     private class NodThroughVerifier implements HostnameVerifier {
         public boolean verify(String arg0, SSLSession arg1) {
             return true;
@@ -33,9 +32,12 @@ public class HTTPReader {
     
     private URL _url = null;
     private URLConnection _connection = null;
+    private BufferedInputStream _in = null;
 
     public HTTPReader(URL url) {
         this._url = url;
+        HttpsURLConnection.setDefaultHostnameVerifier(new NodThroughVerifier());
+        HttpsURLConnection httpsConnection = null;
     }
     
     public boolean canConnect() {
@@ -50,36 +52,36 @@ public class HTTPReader {
         return true;        
     }
     
+    private void openConnection() throws IOException {
+        try {
+            _connection = (HttpURLConnection) _url.openConnection();
+        } catch (IOException e) {
+            throw new ConnectionFailedException("error connection to " + _url.getHost() + ":" + _url.getPort());
+        }
+        
+        _in = new BufferedInputStream(_connection.getInputStream() );
+    }
+    
     public String guessContentType() throws IOException {
         if (null == _connection) {
-	        try {
-	            _connection = (HttpURLConnection) _url.openConnection();
-	        } catch (IOException e) {
-	            throw new ConnectionFailedException("error connection to " + _url.getHost() + ":" + _url.getPort());
-	        }
+            openConnection();
         }
 
-        return URLConnection.guessContentTypeFromStream(new BufferedInputStream(_connection.getInputStream() ) );
+        String contentType = URLConnection.guessContentTypeFromStream(_in);
+        _in.reset();
+        
+        return contentType;
     }
     
     public String read() throws IOException, ResourceNotFoundException {
         StringBuffer result = new StringBuffer();
 
         if (_url.getProtocol().compareToIgnoreCase("http") == 0) {
-            HttpURLConnection httpConnection = null;
-
             if ( null == _connection) {
-	            try {
-	                 httpConnection = (HttpURLConnection) _url.openConnection();
-	            } catch (IOException e) {
-	                throw new ConnectionFailedException("error connection to " + _url.getHost() + ":" + _url.getPort());
-	            }
-	            httpConnection.connect();
-            } else {
-                httpConnection = (HttpURLConnection) _connection;
+	            openConnection();
             }
-
-            httpConnection.connect();
+            
+            HttpURLConnection httpConnection = (HttpURLConnection) _connection; 
             int responseCode = httpConnection.getResponseCode();
             
             logger.debug(responseCode + " " + httpConnection.getResponseMessage());
@@ -88,7 +90,7 @@ public class HTTPReader {
                 throw new ResourceNotFoundException(_url + ": " + httpConnection.getResponseMessage() );
             }
             
-            BufferedReader in = new BufferedReader( new InputStreamReader( httpConnection.getInputStream() ) );
+            BufferedReader in = new BufferedReader( new InputStreamReader( _in ) );
             
             String s;
             while ( null != (s = in.readLine()) ) {

@@ -1,4 +1,4 @@
-package org.inca.odp.content.sql;
+package org.inca.odp.importer.sql;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 import org.inca.main.ApplicationConfiguration;
-import org.inca.util.logging.LogHelper;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -29,9 +28,9 @@ import org.xml.sax.helpers.DefaultHandler;
  * listing all categories and creates the odp category
  * structure on the filesystem.
  */
-public class ContentLinkSQLXMLHandler extends DefaultHandler {
+public class ContentLinksXMLHandler extends DefaultHandler {
     private static Configuration config = ApplicationConfiguration.getConfiguration();
-    private static Logger logger = LogHelper.getLogger();
+    private static Logger logger = Logger.getLogger(ContentLinksXMLHandler.class);
 
     private String _currentTag = "";
     private String _currentTopicID = "";
@@ -60,7 +59,7 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
     final private static String FS = System.getProperty("file.separator");
     private long _startTime;
 
-    public ContentLinkSQLXMLHandler() {
+    public ContentLinksXMLHandler() {
         super();
         _links = new LinkedList();
        

@@ -9,7 +9,6 @@ import java.util.Hashtable;
 
 import org.apache.log4j.Logger;
 import org.ccil.cowan.tagsoup.Parser;
-import org.inca.util.logging.LogHelper;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -19,7 +18,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 public class XMLPlaintextExtractor extends PlaintextExtractor {
-    private static Logger logger = LogHelper.getLogger();
+    private static final Logger logger = Logger.getLogger(XMLPlaintextExtractor.class);
     private final static String AELFRED_SAX_DRIVER  = "gnu.xml.aelfred2.SAXDriver";
 
     public XMLPlaintextExtractor(String data) {
@@ -40,7 +39,7 @@ public class XMLPlaintextExtractor extends PlaintextExtractor {
             super();
             _text = new StringBuffer();
             
-            _ignoredTags.put("a", new Boolean(true));
+//            _ignoredTags.put("a", new Boolean(true));
             _ignoredTags.put("applet", new Boolean(true));
             _ignoredTags.put("code", new Boolean(true));
             _ignoredTags.put("comment", new Boolean(true));
@@ -53,13 +52,8 @@ public class XMLPlaintextExtractor extends PlaintextExtractor {
             _ignoredTags.put("area", new Boolean(true));
             _ignoredTags.put("input", new Boolean(true));
             _ignoredTags.put("map", new Boolean(true));
-        }
-        
-        private void printIndent(String s) {
-            for (int i = 0; i < _depth; i++) {
-                logger.debug(" ");
-            }
-            logger.debug(s);
+            
+            _depth = 0;
         }
 
         public void startElement(String uri, String localName, String qName,
@@ -74,13 +68,13 @@ public class XMLPlaintextExtractor extends PlaintextExtractor {
                 _ignoredTag = true;
                 
                 if (logger.isDebugEnabled() )
-                    printIndent("ignored node: " + qName);
+                    logger.debug("ignored node: " + qName);
             } else if ( _ignoredTag ){
                 if (logger.isDebugEnabled() )
-                    printIndent("ignored: " + qName);
+                    logger.debug("ignored: " + qName);
             } else {
                 if (logger.isDebugEnabled() )
-                    printIndent("tag: " + qName );
+                    logger.debug("tag: " + qName );
             }
             _depth++;
         }
@@ -94,15 +88,15 @@ public class XMLPlaintextExtractor extends PlaintextExtractor {
 
             if ( _currentIgnoredTag != null && ( qName.compareToIgnoreCase(_currentIgnoredTag) == 0) && _ignoredTag ) {
                 if (logger.isDebugEnabled() )
-                    printIndent("end ignored node: " + qName );
+                    logger.debug("end ignored node: " + qName );
                 _ignoredTag = false;
                 _currentIgnoredTag = null;
             } else if ( _ignoredTag ) {
                 if (logger.isDebugEnabled() )
-                    printIndent("end ignored: " + qName);
+                    logger.debug("end ignored: " + qName);
             } else {
                 if (logger.isDebugEnabled() )
-                    printIndent("end tag: " + qName );
+                    logger.debug("end tag: " + qName );
             }
         }
 
@@ -122,8 +116,9 @@ public class XMLPlaintextExtractor extends PlaintextExtractor {
         public void characters(char[] ch, int start, int length) {
             if ( length > 0 && !_ignoredTag ) {
                 String data = new String(ch, start, length);
-                if (logger.isDebugEnabled() )
-                    printIndent("text node.");
+                if (logger.isDebugEnabled() ) {
+                    logger.debug("text node:" + data);
+                }
                 _text.append(data);
             }
         }

@@ -9,12 +9,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.configuration.Configuration;
+import org.inca.main.ApplicationConfiguration;
 import org.inca.util.CountingHashtable;
 
 /**
  * @author achim
  */
 public class FrequencyTagFilter extends TagFilter {
+    private static Configuration config = ApplicationConfiguration.getConfiguration();
     public FrequencyTagFilter(CountingHashtable tags) {
         super(tags);
     }
@@ -37,6 +40,7 @@ public class FrequencyTagFilter extends TagFilter {
         List sortedTags = new ArrayList(_tags.entrySet() );
         Collections.sort(sortedTags, new ReverseEntryValueComparator() );
         
-        return sortedTags;        
+        int max = Math.min(sortedTags.size(), config.getInt("tagger.tagsPerDoc"));
+        return sortedTags.subList(0, max);        
     }
 }

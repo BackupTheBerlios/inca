@@ -4,19 +4,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 
 import org.apache.log4j.Logger;
-import org.inca.util.logging.LogHelper;
 
 public class StreamGobbler extends Thread {
     final private static String _NL = System.getProperty("line.separator");
-    private static Logger logger = LogHelper.getLogger();
+    private static Logger logger =Logger.getLogger(StreamGobbler.class);
 
     private InputStream _is;
     private String _type;
-
-    private OutputStream _os;
     
     private StringBuffer _data;
    

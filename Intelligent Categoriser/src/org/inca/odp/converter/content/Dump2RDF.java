@@ -1,14 +1,11 @@
 /*
  * Created on Dec 16, 2004 3:19:29 PM
  */
-package org.inca.odp.structure;
+package org.inca.odp.converter.content;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
 import org.xml.sax.InputSource;
@@ -19,11 +16,9 @@ import org.xml.sax.helpers.XMLReaderFactory;
 /**
  * @author achim
  */
-public class Structure2RDF {
-    private final static String STRUCTURE_FILE = "/home/achim/Projects/studienarbeit/odp/structure.rdf.u8";
-
-    private final static String RDFSTRUCTURE_FILE = "/home/achim/Projects/studienarbeit/odp/dmoz-structure.rdf";
-
+public class Dump2RDF { 
+    private final static String ODP_FILE = "/home/achim/Projects/studienarbeit/odp/content.rdf.u8.test";
+    private final static String RDFODP_FILE = "/home/achim/Projects/studienarbeit/odp/dmoz-content.rdf";
     private final static String mySAXDriver = "gnu.xml.aelfred2.SAXDriver";
 
     /** Namespaces feature id (http://xml.org/sax/features/namespaces). */
@@ -67,13 +62,13 @@ public class Structure2RDF {
                     + NAMESPACE_PREFIXES_FEATURE_ID + ")");
         }
 
-        StructureXMLHandler xh = null;
+        Dump2RDFXMLHandler xh = null;
         try {
-            xh = new StructureXMLHandler(RDFSTRUCTURE_FILE);
+            xh = new Dump2RDFXMLHandler(RDFODP_FILE);
         } catch (UnsupportedEncodingException e3) {
             System.err.println("unsupported output encoding.");
         } catch (FileNotFoundException e3) {
-            System.err.println("could not open file " + RDFSTRUCTURE_FILE
+            System.err.println("could not open file " + RDFODP_FILE
                     + " for writing.");
         }
         xr.setContentHandler(xh);
@@ -81,17 +76,17 @@ public class Structure2RDF {
         try {
             // Start parsing
 //            xr.parse(new InputSource(new BufferedReader(new InputStreamReader(
-//                    new FileInputStream(STRUCTURE_FILE), "UTF-8)"))));
-            xr.parse(new InputSource(new FileReader(STRUCTURE_FILE)));
+//                    new FileInputStream(ODP_FILE), "UTF-8)"))));
+            xr.parse(new InputSource(new FileReader(ODP_FILE)));
         } catch (FileNotFoundException e2) {
-            System.err.println("could not open " + STRUCTURE_FILE
+            System.err.println("could not open " + ODP_FILE
                     + " for reading.");
         } catch (UnsupportedEncodingException e2) {
             System.err.println("unsupported input encoding.");
         } catch (IOException e2) {
-            System.err.println("error reading from " + STRUCTURE_FILE);
+            System.err.println("error reading from " + ODP_FILE);
         } catch (SAXException e2) {
-            System.err.println("error parsing " + STRUCTURE_FILE);
+            System.err.println("error parsing " + ODP_FILE);
         }
 
         System.out.println("done.");

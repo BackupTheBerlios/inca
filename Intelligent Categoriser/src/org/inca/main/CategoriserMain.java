@@ -20,13 +20,12 @@ public class CategoriserMain {
     private static final String[] KEYWORDS = { "Deutsche Bank", "IBM Corporation",
             "Daimler Chrysler" };
 
-    static Logger logger;
+    static Logger logger = Logger.getLogger(CategoriserMain.class);
     static Configuration config;
 
     public static void main(String[] args) {
         ApplicationConfiguration.initInstance();
         config  = ApplicationConfiguration.getConfiguration();
-        logger = LogHelper.getLogger();
 
         doSearch();        
     }

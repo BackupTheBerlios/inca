@@ -22,15 +22,15 @@ import java.util.TimeZone;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
+import org.inca.main.ApplicationConfiguration;
 import org.inca.util.CountingHashtable;
-import org.inca.util.logging.LogHelper;
 import org.inca.util.sys.StreamGobbler;
 
 /**
  * @author achim
  */
 public class TreeTagger extends Tagger {
-    private static Logger logger = LogHelper.getLogger();
+    private static Logger logger = Logger.getLogger(TreeTagger.class);
     
     private static final Hashtable INTERESTING_TAGS = new Hashtable();
     private final static String _NL = System.getProperty("line.separator");
@@ -119,10 +119,9 @@ public class TreeTagger extends Tagger {
         
         return tags;
     }
-    
-  
 
     public static void main(String[] args) throws TaggerException, IOException {
+        ApplicationConfiguration.initInstance();
         File f = new File("/home/achim/Projects/workspace/GateEval/text");
         
         StringBuffer data = new StringBuffer();	

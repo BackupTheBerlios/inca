@@ -13,10 +13,9 @@ import javax.swing.text.html.HTMLEditorKit.ParserCallback;
 import javax.swing.text.html.parser.ParserDelegator;
 
 import org.apache.log4j.Logger;
-import org.inca.util.logging.LogHelper;
 
 public class HTMLPlaintextExtractor extends PlaintextExtractor {
-    private static Logger logger = LogHelper.getLogger();
+    private static Logger logger = Logger.getLogger(HTMLPlaintextExtractor.class);
     public HTMLPlaintextExtractor(String data) {
         super(data);
     }

@@ -1,0 +1,2 @@
+Manifest-Version: 1.0
+Class-Path: lib/commons-beanutils.jar lib/commons-collections.jar lib/commons-configuration.jar lib/commons-digester.jar lib/commons-lang.jar lib/commons-logging.jar lib/commons-logging-api.jar lib/googleapi.jar lib/log4j.jar lib/mysql-connector-java-3.0.11-stable-bin.jar lib/html-parser.jar lib/tagsoup-1.0rc2.jar lib/gnujaxp.jar

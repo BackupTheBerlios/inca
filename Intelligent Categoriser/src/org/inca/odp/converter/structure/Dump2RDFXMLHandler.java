@@ -1,7 +1,7 @@
 /*
  * Created on Dec 16, 2004 3:22:00 PM
  */
-package org.inca.odp.structure;
+package org.inca.odp.converter.structure;
 
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
@@ -18,7 +18,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * @author achim
  */
-public class StructureXMLHandler extends DefaultHandler {
+public class Dump2RDFXMLHandler extends DefaultHandler {
     private String _currentTag = "";
     private String _currentTopicID = "";
     private String _currentTopicTitle = "";
@@ -40,7 +40,7 @@ public class StructureXMLHandler extends DefaultHandler {
      * @throws UnsupportedEncodingException
      *  
      */
-    public StructureXMLHandler(String filename) throws UnsupportedEncodingException,
+    public Dump2RDFXMLHandler(String filename) throws UnsupportedEncodingException,
             FileNotFoundException {
         super();
         _writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(

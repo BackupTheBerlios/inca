@@ -1,7 +1,7 @@
 /*
  * Created on Dec 16, 2004 3:19:29 PM
  */
-package org.inca.odp.content.sql;
+package org.inca.odp.importer.sql;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,7 +12,6 @@ import java.io.UnsupportedEncodingException;
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 import org.inca.main.ApplicationConfiguration;
-import org.inca.util.logging.LogHelper;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -21,9 +20,9 @@ import org.xml.sax.helpers.XMLReaderFactory;
 /**
  * @author achim
  */
-public class ContentLink2SQL {
+public class ContentLinks {
     static Configuration config;
-    static Logger logger;  
+    static Logger logger = Logger.getLogger(ContentLinks.class);  
     private final static String mySAXDriver = "gnu.xml.aelfred2.SAXDriver";
 
     /** Namespaces feature id (http://xml.org/sax/features/namespaces). */
@@ -44,7 +43,6 @@ public class ContentLink2SQL {
     public static void main(String[] args) {
         ApplicationConfiguration.initInstance();
         config  = ApplicationConfiguration.getConfiguration();
-        logger = LogHelper.getLogger();
         
         final String ODP_BASE_DIR = config.getString("odp.baseDir");
         final String ODP_FILE = ODP_BASE_DIR + File.separator + config.getString("odp.contentFile");
@@ -75,8 +73,8 @@ public class ContentLink2SQL {
                     + NAMESPACE_PREFIXES_FEATURE_ID + ")");
         }
 
-        ContentLinkSQLXMLHandler xh = null;
-        xh = new ContentLinkSQLXMLHandler();
+        ContentLinksXMLHandler xh = null;
+        xh = new ContentLinksXMLHandler();
         xr.setContentHandler(xh);
 
         try {

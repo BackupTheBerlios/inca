@@ -17,7 +17,7 @@ public class ApplicationConfiguration {
     final private static String _configFilename = "config.xml";
 
     private static Configuration _configuration = null;
-    private static Logger logger = null;
+    private static Logger logger = Logger.getLogger(ApplicationConfiguration.class);
 
     public static ApplicationConfiguration getInstance() {
         if (null == _instance) {
@@ -42,8 +42,6 @@ public class ApplicationConfiguration {
         System.out.println("setting up logging.");
         LogHelper.initInstance();
 
-        logger = LogHelper.getLogger();
-
         ConfigurationFactory factory = new ConfigurationFactory();
 
         if (configLocation.equals("")) {
@@ -51,6 +49,7 @@ public class ApplicationConfiguration {
                 .info("no configuration file provided. attempting to guess one");
 
             // try via URL first
+            logger.info("trying getResource()");
             URL configURL = ApplicationConfiguration.class
                 .getResource(_configFilename);
 
@@ -66,8 +65,8 @@ public class ApplicationConfiguration {
                 String homeDir = System.getProperty("user.home");
                 String fs = System.getProperty("file.separator");
 
-                String[] locations = { workDir + fs + _configFilename,
-                        homeDir + fs + _configFilename };
+                String[] locations = { "file://" + workDir + fs + _configFilename,
+                        "file://" + homeDir + fs + _configFilename };
 
                 for (int i = 0; i < locations.length; i++) {
                     String location = locations[i];
@@ -75,12 +74,14 @@ public class ApplicationConfiguration {
                     factory.setConfigurationFileName(location);
                     try {
                         _configuration = factory.getConfiguration();
-                        break;
+                        return;
                     } catch (ConfigurationException f) {
                         logger.error("no config at " + location);
                         continue;
                     }
                 }
+                
+                logger.fatal("failed to load configuration.");
             }
         } else {
             URL configURL = getClass().getResource(_configFilename);
@@ -89,7 +90,7 @@ public class ApplicationConfiguration {
             try {
                 _configuration = factory.getConfiguration();
             } catch (ConfigurationException e) {
-                logger.error("error loading configuration from " + configURL);
+                logger.fatal("error loading configuration from " + configURL);
             }
         }
     }
