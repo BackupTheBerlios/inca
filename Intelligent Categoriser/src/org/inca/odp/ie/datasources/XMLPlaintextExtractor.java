@@ -147,7 +147,9 @@ public class XMLPlaintextExtractor extends PlaintextExtractor {
             try {
                 xr = XMLReaderFactory.createXMLReader();
             } catch (SAXException e1) {
-                logger.fatal("could not create xml parser.");
+                logger.error(e1);
+                logger.error("could not create xml reader.");
+                throw new IOException();
             }
         } else {
             xr = new Parser();
@@ -175,6 +177,7 @@ public class XMLPlaintextExtractor extends PlaintextExtractor {
                 xr.parse(new InputSource(new StringReader(_data)));
             } catch (SAXException e2) {
                 logger.error("parsing as html failed. giving up.");
+                throw new IOException();
             }
         }
         

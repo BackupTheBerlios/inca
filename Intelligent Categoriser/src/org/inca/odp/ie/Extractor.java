@@ -206,7 +206,7 @@ public class Extractor {
             long wordId = insertAndGetId("words", new String[] { "word", "tag" }, new Object[] { lemma, tag });
             
             Statement word2linkStmt = _connection.createStatement();
-            word2linkStmt.execute("INSERT INTO word2link (wordId, linkId, freq) VALUES(" + linkId + ", " + wordId + ", " + freq + ");");
+            word2linkStmt.execute("INSERT INTO word2link (wordId, linkId, freq) VALUES(" + wordId + ", " + linkId + ", " + freq + ");");
         }
     }
     
@@ -235,13 +235,13 @@ public class Extractor {
 	        try {
 	            tagger = new TreeTagger(pc.getPlaintext() );
 	        } catch (ConnectionFailedException e) {
-	            logger.error(e.getMessage() );
+	            logger.error(e);
 	            continue;
 	        } catch (ResourceNotFoundException e) {
-	            logger.error(e.getMessage() );
+	            logger.error(e);
 	            continue;
 	        } catch (IOException e) {
-	            logger.error("error getting plaintext.");
+	            logger.error("error getting plaintext:");
 	            logger.error(e);
 	            continue;
 	        }
@@ -250,10 +250,10 @@ public class Extractor {
 	        try {
 	            tags = tagger.getTags();
 	        } catch (TaggerException e) {
-	            logger.error(e.getMessage() );
+	            logger.error(e);
 	            continue;
 	        } catch (IOException e) {
-	            logger.error(e.getMessage() );
+	            logger.error(e);
 	            continue;
 	        }
 	        
