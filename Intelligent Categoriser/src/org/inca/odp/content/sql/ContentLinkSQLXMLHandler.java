@@ -43,6 +43,9 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
     private String _currentLink = "";
     private String _currentDescription = "";
     
+    private int _maxCatLen = 0;
+    private int _maxURLLen = 0;
+    
     private Connection _connection = null;
 
     /**
@@ -83,14 +86,12 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
     
     private long insertAndGetId(String table, String row, String value) throws SQLException{
         long id = 0;
-        String insertStmt = "INSERT IGNORE INTO " + table + " (" + row + ") VALUES ('?');";
-        String selectStmt = "SELECT id FROM " + table + " WHERE " + row + "='?';";
-        System.out.println((insertStmt));
-        
+        String insertStmt = "INSERT IGNORE INTO " + table + " (" + row + ") VALUES (\"?\");";
+        String selectStmt = "SELECT id FROM " + table + " WHERE " + row + "=\"?\";";
+       
         PreparedStatement stmt = _connection.prepareStatement(insertStmt, PreparedStatement.RETURN_GENERATED_KEYS);
-        stmt.setEscapeProcessing(true);
+        stmt.setEscapeProcessing(true);     
         stmt.setString(1, value);
-        
         stmt.execute();
 
         ResultSet rs = stmt.getGeneratedKeys();
@@ -101,10 +102,12 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
             stmt = _connection.prepareStatement(selectStmt);
             stmt.setEscapeProcessing(true);
             stmt.setString(1, value);
-            rs = stmt.executeQuery(selectStmt);
+            stmt.execute();
+            
+            rs = stmt.getResultSet();
             
             if ( rs.next() ) {
-                id = rs.getLong(1);
+                id = rs.getLong("id");
             } else {
                 throw new SQLException("failed to get id from ResultSet");
             }
@@ -119,7 +122,9 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
         if (_links.size() > 0) {
             for (Iterator iter = _links.iterator(); iter.hasNext();) {
                 String link = (String) iter.next();
-                System.out.println(("--" + link));
+                if (link.length() > _maxURLLen) {
+                    _maxURLLen = link.length();
+                }
                 
                 long linkId = insertAndGetId("links", "url", link);
                 Statement stmt = _connection.createStatement();
@@ -172,22 +177,31 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
             
             // ignore content in World category
             if (topicPath.startsWith("/World") ) {
-                return;
+                _links.clear();
+
+                _currentTopicID = "";
+	            _currentLink = "";
+	            _currentDescription = "";
+	            ++count;
+            } else {
+                if (topicPath.length() > _maxCatLen) {
+                    _maxCatLen = topicPath.length();
+                }
+                
+	            try {
+	                dbInsert(topicPath);
+	            } catch (SQLException e) {
+	                // TODO Auto-generated catch block
+	                e.printStackTrace();
+	            }
+	            
+	            _links.clear();
+	            
+	            _currentTopicID = "";
+	            _currentLink = "";
+	            _currentDescription = "";
+	            ++count;
             }
-            
-            try {
-                dbInsert(topicPath);
-            } catch (SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            
-            _links.clear();
-            
-            _currentTopicID = "";
-            _currentLink = "";
-            _currentDescription = "";
-            ++count;
         } else if (qName.compareToIgnoreCase("externalPage") == 0) {
             _inExternalPage = false;
         }
@@ -204,7 +218,10 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        System.out.println(count + " processed");
+        
+        System.out.println(count + " categories processed");
+        System.out.println("max category name length: " + _maxCatLen);
+        System.out.println("max url length: " + _maxURLLen);
     }
 
     public void characters(char[] ch, int start, int length) {

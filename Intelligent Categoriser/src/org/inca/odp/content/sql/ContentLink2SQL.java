@@ -20,7 +20,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
  * @author achim
  */
 public class ContentLink2SQL {
-    private final static String ODP_FILE = "/home/achim/Projects/studienarbeit/odp/content.rdf.u8.test";
+    private final static String ODP_FILE = "/home/achim/Projects/studienarbeit/odp/content.rdf.u8";
     private final static String mySAXDriver = "gnu.xml.aelfred2.SAXDriver";
 
     /** Namespaces feature id (http://xml.org/sax/features/namespaces). */
