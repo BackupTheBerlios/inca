@@ -12,13 +12,16 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 import org.xml.sax.Attributes;
@@ -63,6 +66,7 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
 
     final private static String NL = System.getProperty("line.separator");
     final private static String FS = System.getProperty("file.separator");
+    private long _startTime;
 
     public ContentLinkSQLXMLHandler() {
         super();
@@ -86,8 +90,8 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
     
     private long insertAndGetId(String table, String row, String value) throws SQLException{
         long id = 0;
-        String insertStmt = "INSERT IGNORE INTO " + table + " (" + row + ") VALUES (\"?\");";
-        String selectStmt = "SELECT id FROM " + table + " WHERE " + row + "=\"?\";";
+        String insertStmt = "INSERT IGNORE INTO " + table + " (" + row + ") VALUES (?);";
+        String selectStmt = "SELECT id FROM " + table + " WHERE " + row + "=?;";
        
         PreparedStatement stmt = _connection.prepareStatement(insertStmt, PreparedStatement.RETURN_GENERATED_KEYS);
         stmt.setEscapeProcessing(true);     
@@ -209,6 +213,7 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
 
     public void startDocument() throws SAXException {
         count = 0;
+        _startTime = System.currentTimeMillis();
     }
 
     public void endDocument() throws SAXException {
@@ -218,6 +223,13 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        
+        long _currentTime = System.currentTimeMillis();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        long elapsedTime = System.currentTimeMillis() - _startTime;
+        System.out.println("time: "
+                + dateFormat.format(new Date(elapsedTime)));
         
         System.out.println(count + " categories processed");
         System.out.println("max category name length: " + _maxCatLen);
