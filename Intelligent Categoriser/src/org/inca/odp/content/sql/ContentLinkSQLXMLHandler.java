@@ -1,16 +1,7 @@
 package org.inca.odp.content.sql;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -24,6 +15,10 @@ import java.util.LinkedList;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.log4j.Logger;
+import org.inca.main.ApplicationConfiguration;
+import org.inca.util.logging.LogHelper;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -35,11 +30,8 @@ import org.xml.sax.helpers.DefaultHandler;
  * structure on the filesystem.
  */
 public class ContentLinkSQLXMLHandler extends DefaultHandler {
-    final public static String DB_URL = "jdbc:mysql://localhost/odp";
-    final public static String DB_USER = "odp";
-    final public static String DB_PASSWD = "odp";
-    final public static String DB = "MySQL";
-    final public static String DB_DRIVER_CLASS = "com.mysql.jdbc.Driver";
+    private static Configuration config = ApplicationConfiguration.getConfiguration();
+    private static Logger logger = LogHelper.getLogger();
 
     private String _currentTag = "";
     private String _currentTopicID = "";
@@ -76,15 +68,22 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
     }
     
     private void dbConnect() {
+        final String DB_URL = config.getString("extractor.dbUrl");
+        final String DB_USER = config.getString("extractor.dbUser");
+        final String DB_PASSWD = config.getString("extractor.dbPasswd");
+        final String DB_DRIVER_CLASS = config.getString("extractor.dbDriverClass");
+
         try {
             Class.forName(DB_DRIVER_CLASS);
         } catch (ClassNotFoundException e) {
-            System.err.println("error loading sql driver.");
+            logger.fatal("error loading sql driver.");
+            return;
         }
+        
         try {
             _connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWD);
         } catch (SQLException e1) {
-            System.err.println("error connection to database.");
+            logger.fatal("error connection to database.");
         } 
     }
     
@@ -120,7 +119,7 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
     }
     
     private void dbInsert(String topicPath) throws SQLException {
-        System.out.println(">" + topicPath);
+       logger.info(">" + topicPath);
         long catId = insertAndGetId("categories", "name", topicPath);
         
         if (_links.size() > 0) {
@@ -173,7 +172,7 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
                 topic = new URL(_currentTopicID);
             } catch (MalformedURLException e1) {
                 // TODO Auto-generated catch block
-                e1.printStackTrace();
+                logger.error(e1);
             }
             
             // get path and filename from tag
@@ -196,7 +195,7 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
 	                dbInsert(topicPath);
 	            } catch (SQLException e) {
 	                // TODO Auto-generated catch block
-	                e.printStackTrace();
+	                logger.error(e);
 	            }
 	            
 	            _links.clear();
@@ -221,19 +220,19 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
             _connection.close();
         } catch (SQLException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            logger.error(e);
         }
         
         long _currentTime = System.currentTimeMillis();
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         long elapsedTime = _currentTime - _startTime;
-        System.out.println("time: "
+        logger.info("time: "
                 + dateFormat.format(new Date(elapsedTime)));
         
-        System.out.println(count + " categories processed");
-        System.out.println("max category name length: " + _maxCatLen);
-        System.out.println("max url length: " + _maxURLLen);
+        logger.info(count + " categories processed");
+        logger.info("max category name length: " + _maxCatLen);
+        logger.info("max url length: " + _maxURLLen);
     }
 
     public void characters(char[] ch, int start, int length) {

@@ -3,12 +3,9 @@
  */
 package org.inca.odp.content.rdf;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
 import org.xml.sax.InputSource;
@@ -19,7 +16,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
 /**
  * @author achim
  */
-public class Content2RDF {
+public class Content2RDF { 
     private final static String ODP_FILE = "/home/achim/Projects/studienarbeit/odp/content.rdf.u8.test";
     private final static String RDFODP_FILE = "/home/achim/Projects/studienarbeit/odp/dmoz-content.rdf";
     private final static String mySAXDriver = "gnu.xml.aelfred2.SAXDriver";

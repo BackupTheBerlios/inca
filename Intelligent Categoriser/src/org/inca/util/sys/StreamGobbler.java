@@ -6,8 +6,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 
+import org.apache.log4j.Logger;
+import org.inca.util.logging.LogHelper;
+
 public class StreamGobbler extends Thread {
     final private static String _NL = System.getProperty("line.separator");
+    private static Logger logger = LogHelper.getLogger();
+
     private InputStream _is;
     private String _type;
 
@@ -33,7 +38,7 @@ public class StreamGobbler extends Thread {
                 _data.append(line + _NL);
             }
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            logger.error(ioe);
         }
     }
 }
