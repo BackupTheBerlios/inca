@@ -1,7 +1,7 @@
 /*
  * Created on Dec 16, 2004 3:19:29 PM
  */
-package org.inca.odp.content;
+package org.inca.odp.content.sql;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -10,7 +10,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -20,7 +19,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
 /**
  * @author achim
  */
-public class ContentLinkExtractor {
+public class ContentLink2SQL {
     private final static String ODP_FILE = "/home/achim/Projects/studienarbeit/odp/content.rdf.u8.test";
     private final static String mySAXDriver = "gnu.xml.aelfred2.SAXDriver";
 
@@ -65,20 +64,8 @@ public class ContentLinkExtractor {
                     + NAMESPACE_PREFIXES_FEATURE_ID + ")");
         }
 
-        ContentLinkXMLHandler xh = null;
-        try {
-            try {
-                xh = new ContentLinkXMLHandler();
-            } catch (FileNotFoundException e4) {
-                // TODO Auto-generated catch block
-                e4.printStackTrace();
-            } catch (NoSuchAlgorithmException e4) {
-                // TODO Auto-generated catch block
-                e4.printStackTrace();
-            }
-        } catch (UnsupportedEncodingException e3) {
-            System.err.println("unsupported output encoding.");
-        }
+        ContentLinkSQLXMLHandler xh = null;
+        xh = new ContentLinkSQLXMLHandler();
         xr.setContentHandler(xh);
 
         try {

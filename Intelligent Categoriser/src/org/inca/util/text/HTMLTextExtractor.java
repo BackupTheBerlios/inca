@@ -19,7 +19,7 @@ public class HTMLTextExtractor extends TextExtractor {
 
     public StringBuffer getText(URL url) {
         Pattern brTag = Pattern.compile("<br>|<br\\w?/>");
-        Pattern htmlTags = Pattern.compile("<[^>]*>");
+        Pattern htmlTags = Pattern.compile("<[^>]*>|</[^>]*>");
         
         Matcher matcher = brTag.matcher(content);
         matcher.replaceAll(NL);

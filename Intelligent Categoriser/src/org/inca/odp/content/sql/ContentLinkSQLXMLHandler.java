@@ -1,4 +1,4 @@
-package org.inca.odp.content;
+package org.inca.odp.content.sql;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,6 +11,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.regex.Pattern;
 
 import org.xml.sax.Attributes;
@@ -23,25 +31,26 @@ import org.xml.sax.helpers.DefaultHandler;
  * listing all categories and creates the odp category
  * structure on the filesystem.
  */
-public class ContentLinkXMLHandler extends DefaultHandler {
-    private final static String DMOZ_BASE = "/home/achim/Projects/studienarbeit/odp/content";
+public class ContentLinkSQLXMLHandler extends DefaultHandler {
+    final public static String DB_URL = "jdbc:mysql://localhost/odp";
+    final public static String DB_USER = "odp";
+    final public static String DB_PASSWD = "odp";
+    final public static String DB = "MySQL";
+    final public static String DB_DRIVER_CLASS = "com.mysql.jdbc.Driver";
 
     private String _currentTag = "";
     private String _currentTopicID = "";
     private String _currentLink = "";
     private String _currentDescription = "";
+    
+    private Connection _connection = null;
 
     /**
      * there are two topic tags: one nested in externalPage and one standing for itself. 
      */
     private boolean _inExternalPage = false;
 
-    private StringBuffer _thisTag = null;
-    private PrintWriter _writer = null;
-    private PrintWriter _indexWriter = null;
-    private PrintWriter _descriptionWriter = null;
-
-    private MessageDigest _md = null;
+    private LinkedList _links = null;
 
     private Pattern _linkEnclosingTags = Pattern.compile(
             "narrow|link|link1|narrow2|related", Pattern.CASE_INSENSITIVE);
@@ -52,18 +61,72 @@ public class ContentLinkXMLHandler extends DefaultHandler {
     final private static String NL = System.getProperty("line.separator");
     final private static String FS = System.getProperty("file.separator");
 
-    public ContentLinkXMLHandler() throws UnsupportedEncodingException,
-            FileNotFoundException, NoSuchAlgorithmException {
+    public ContentLinkSQLXMLHandler() {
         super();
-
-        _indexWriter = new PrintWriter(new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(
-                        "/home/achim/Projects/studienarbeit/odp/dmoz-content"),
-                        "UTF-8")));
-        _thisTag = new StringBuffer(5 * 1024);
-        _md = MessageDigest.getInstance("SHA-1");
+        _links = new LinkedList();
+       
+        dbConnect();
     }
+    
+    private void dbConnect() {
+        try {
+            Class.forName(DB_DRIVER_CLASS);
+        } catch (ClassNotFoundException e) {
+            System.err.println("error loading sql driver.");
+        }
+        try {
+            _connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWD);
+        } catch (SQLException e1) {
+            System.err.println("error connection to database.");
+        } 
+    }
+    
+    private long insertAndGetId(String table, String row, String value) throws SQLException{
+        long id = 0;
+        String insertStmt = "INSERT IGNORE INTO " + table + " (" + row + ") VALUES ('?');";
+        String selectStmt = "SELECT id FROM " + table + " WHERE " + row + "='?';";
+        System.out.println((insertStmt));
+        
+        PreparedStatement stmt = _connection.prepareStatement(insertStmt, PreparedStatement.RETURN_GENERATED_KEYS);
+        stmt.setEscapeProcessing(true);
+        stmt.setString(1, value);
+        
+        stmt.execute();
 
+        ResultSet rs = stmt.getGeneratedKeys();
+               
+        if ( rs.next() ) {
+            id = rs.getLong(1);
+        } else {
+            stmt = _connection.prepareStatement(selectStmt);
+            stmt.setEscapeProcessing(true);
+            stmt.setString(1, value);
+            rs = stmt.executeQuery(selectStmt);
+            
+            if ( rs.next() ) {
+                id = rs.getLong(1);
+            } else {
+                throw new SQLException("failed to get id from ResultSet");
+            }
+        }
+        return id;
+    }
+    
+    private void dbInsert(String topicPath) throws SQLException {
+        System.out.println(">" + topicPath);
+        long catId = insertAndGetId("categories", "name", topicPath);
+        
+        if (_links.size() > 0) {
+            for (Iterator iter = _links.iterator(); iter.hasNext();) {
+                String link = (String) iter.next();
+                System.out.println(("--" + link));
+                
+                long linkId = insertAndGetId("links", "url", link);
+                Statement stmt = _connection.createStatement();
+                stmt.executeUpdate("INSERT INTO cat2link (catId, linkId) VALUES(" + catId + ", " + linkId + ");");
+            }
+        }
+    }
 
     /**
      * @param resource
@@ -74,7 +137,7 @@ public class ContentLinkXMLHandler extends DefaultHandler {
     }
 
     private void insertLink(String resource) {
-        _thisTag.append(resource + NL);
+        _links.add(resource);
     }
 
     public void startElement(String uri, String localName, String qName,
@@ -106,78 +169,26 @@ public class ContentLinkXMLHandler extends DefaultHandler {
             
             // get path and filename from tag
             String topicPath = topic.getPath();
-            String topicFile = "links";
             
             // ignore content in World category
             if (topicPath.startsWith("/World") ) {
                 return;
             }
-
-            // append trailing slash if necessary
-            if (!topicPath.endsWith("/") ) {
-                topicPath = topicPath + "/";
+            
+            try {
+                dbInsert(topicPath);
+            } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
             
-            // make sure all parent directories and this directory exist.
-            (new File(DMOZ_BASE + topicPath)).mkdirs();
-
-            // create a file with links for this topic.
-            if (_thisTag.length() > 0) {
-                try {
-                    _writer = new PrintWriter(
-                            new BufferedWriter(new OutputStreamWriter(
-                                    new FileOutputStream(DMOZ_BASE + topicPath
-                                            + topicFile), "UTF-8")));
-                    
-                } catch (UnsupportedEncodingException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (FileNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                String temp = _thisTag.toString();
-                _writer.print(_thisTag.toString());
-                _thisTag.delete(0, _thisTag.length());
-                _writer.close();
-            }
-
-            // write current topic to content list
-            _indexWriter.println(_currentTopicID);
-
+            _links.clear();
+            
             _currentTopicID = "";
             _currentLink = "";
             _currentDescription = "";
             ++count;
         } else if (qName.compareToIgnoreCase("externalPage") == 0) {
-//            URL topic = null;
-//            try {
-//                topic = new URL(_currentTopicID);
-//            } catch (MalformedURLException e1) {
-//                // TODO Auto-generated catch block
-//                e1.printStackTrace();
-//            }
-//            
-//            // get path and filename from tag
-//            String topicPath = topic.getPath();
-//            String topicFile = "links";
-//
-//            if (_currentDescription.length() > 0) {
-//                try {
-//                    _descriptionWriter = new PrintWriter(
-//                            new BufferedWriter(new OutputStreamWriter(
-//                                    new FileOutputStream(DMOZ_BASE + topicPath
-//                                            + "description"), "UTF-8")));
-//                } catch (UnsupportedEncodingException e) {
-//                    // TODO Auto-generated catch block
-//                    e.printStackTrace();
-//                } catch (FileNotFoundException e) {
-//                    // TODO Auto-generated catch block
-//                    e.printStackTrace();
-//                }
-//                _descriptionWriter.write(_currentDescription);
-//                _descriptionWriter.close();
-//            }
             _inExternalPage = false;
         }
     }
@@ -187,7 +198,12 @@ public class ContentLinkXMLHandler extends DefaultHandler {
     }
 
     public void endDocument() throws SAXException {
-        _indexWriter.close();
+        try {
+            _connection.close();
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         System.out.println(count + " processed");
     }
 

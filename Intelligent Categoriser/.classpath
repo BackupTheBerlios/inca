@@ -12,5 +12,6 @@
 	<classpathentry kind="lib" path="lib/gnujaxp.jar"/>
 	<classpathentry kind="lib" path="lib/googleapi.jar"/>
 	<classpathentry kind="lib" path="lib/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/mysql-connector-java-3.0.11-stable-bin.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
