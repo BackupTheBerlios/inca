@@ -21,14 +21,17 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.Map.Entry;
 
+import org.apache.log4j.Logger;
 import org.inca.util.CountingHashtable;
+import org.inca.util.logging.LogHelper;
 import org.inca.util.sys.StreamGobbler;
 
 /**
  * @author achim
  */
 public class TreeTagger extends Tagger {
-    // these tags will be removed from treetagger output
+    private static Logger logger = LogHelper.getLogger();
+    
     private static final Hashtable INTERESTING_TAGS = new Hashtable();
     private final static String _NL = System.getProperty("line.separator");
     
@@ -58,7 +61,7 @@ public class TreeTagger extends Tagger {
         super(data);
     }
 
-    public CountingHashtable getTags() throws IOException {
+    public CountingHashtable getTags() throws TaggerException, IOException {
         CountingHashtable tags = new CountingHashtable();
         Process taggerProc = Runtime.getRuntime().exec( new String[] {
                 "/bin/sh", "-c", 
@@ -77,12 +80,12 @@ public class TreeTagger extends Tagger {
         try {
             int exitVal = taggerProc.waitFor();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new TaggerException("error waiting for tagger process.");
+        } finally {
+            taggerProc.getErrorStream().close();
+            taggerProc.getInputStream().close();
+            taggerProc.getOutputStream().close();
         }
-        
-        taggerProc.getErrorStream().close();
-        taggerProc.getInputStream().close();
-        taggerProc.getOutputStream().close();
         
 //        errorGobbler.join();
 //        outputGobbler.join();
@@ -111,13 +114,13 @@ public class TreeTagger extends Tagger {
         
         br.close();
         
-        System.out.println("total words: " + words);
-        System.out.println("tagged words: " + count);
+        logger.info("total words: " + words);
+        logger.info("tagged words: " + count);
         
         return tags;
     }
     
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws TaggerException, IOException {
         File f = new File("/home/achim/Projects/workspace/GateEval/text");
         
         StringBuffer data = new StringBuffer();	

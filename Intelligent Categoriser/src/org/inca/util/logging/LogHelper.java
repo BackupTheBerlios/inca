@@ -40,9 +40,14 @@ public class LogHelper {
     protected LogHelper(String configLocation) {
         URL configURL = LogHelper.class.getResource(configLocation);
     
-        System.out.println(configURL.toString());
-        DOMConfigurator.configure(configURL);
+        System.out.println("using " + configURL.toString() +" as log4j config file.");
         
+        // ensure that we use the default xml parser shipped with jdk 1.4
+        // common pitfall: using gnujaxp.jar
+        
+        System.setProperty("org.xml.sax.driver", "org.apache.crimson.parser.XMLReaderImpl");
+        DOMConfigurator.configure(configURL);
+
         _logger = Logger.getLogger(LogHelper.class);
     }        
 }

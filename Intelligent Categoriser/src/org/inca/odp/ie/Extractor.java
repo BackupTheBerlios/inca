@@ -13,35 +13,49 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
+import java.util.Map.Entry;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.log4j.Logger;
+import org.inca.main.ApplicationConfiguration;
+import org.inca.odp.ie.tagger.FrequencyTagFilter;
+import org.inca.odp.ie.tagger.TagFilter;
+import org.inca.odp.ie.tagger.TaggedLemma;
 import org.inca.odp.ie.tagger.Tagger;
+import org.inca.odp.ie.tagger.TaggerException;
 import org.inca.odp.ie.tagger.TreeTagger;
-import org.inca.util.CollisionableHashtable;
 import org.inca.util.CountingHashtable;
+import org.inca.util.logging.LogHelper;
+import org.inca.util.net.ConnectionFailedException;
+import org.inca.util.net.ResourceNotFoundException;
 
 /**
  * @author achim
  */
 public class Extractor {
-    final private static int ROWS_PER_QUERY = 5;
-    final public static String DB_URL = "jdbc:mysql://localhost/odp";
-    final public static String DB_USER = "odp";
-    final public static String DB_PASSWD = "odp";
-    final public static String DB = "MySQL";
-    final public static String DB_DRIVER_CLASS = "com.mysql.jdbc.Driver";
+    static Configuration config;
+    static Logger logger;
+
     private Connection _connection;
-    
+
     private void dbConnect() {
+        String DB_URL = config.getString("extractor.dbUrl");
+        String DB_USER = config.getString("extractor.dbUser");
+        String DB_PASSWD = config.getString("extractor.dbPasswd");
+        String DB_DRIVER_CLASS = config.getString("extractor.dbDriverClass");
+
         try {
             Class.forName(DB_DRIVER_CLASS);
         } catch (ClassNotFoundException e) {
-            System.err.println("error loading sql driver.");
+            logger.fatal("error loading sql driver " + DB_DRIVER_CLASS);
         }
         try {
             _connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWD);
         } catch (SQLException e1) {
-            System.err.println("error connection to database.");
+            logger.fatal("error connection to database.");
         } 
     }
     
@@ -75,7 +89,7 @@ public class Extractor {
         
         long numCat = 0;
         if ( rs.next() ) {
-            System.out.println(rs.getLong(1));
+            logger.info("processing " + rs.getLong(1) + " categories.");
         } else {
             throw new SQLException("failed to count categories.");
         }
@@ -83,33 +97,70 @@ public class Extractor {
         long cat = 0;
         numCat = 15;
         
+        int ROWS_PER_QUERY = config.getInt("extractor.rowsPerQuery");
+        
         while (cat < numCat) {
             rs = stmt.executeQuery("SELECT name from categories LIMIT " + cat + "," + ROWS_PER_QUERY);
             
+            long cc = cat + 1;
             while ( rs.next() ) {
+                logger.info("c (" + cc++ + "): " + rs.getString("name"));
                 Vector links = getLinks(rs.getString("name"));
-            
-	            for (Iterator iter = links.iterator(); iter.hasNext();) {
+                
+                if (0 == links.size() ) {
+                    continue;
+                }
+
+                logger.info("processing " + links.size() + " links.");
+                long lc = 1;
+	            for (Iterator iter = links.iterator(); iter.hasNext(); ) {
 	                URL url = null;
 	                String link = (String) iter.next();
+	                logger.info("l (" + lc++ + "): " + link);
+
                     try {
                         url = new URL(link);
                     } catch (MalformedURLException e) {
-                        System.err.println("malformed url :"   + link);
+                        logger.error("malformed url :"   + link);
+                        continue;
                     }
                     
                     PlaintextConverter pc = new PlaintextConverter(url);
                     Tagger tagger = null;
                     try {
                         tagger = new TreeTagger(pc.getPlaintext());
-                    } catch (IOException e1) {
-                        System.err.println("error extracting plaintext for " + url);
+                    } catch (ConnectionFailedException e) {
+                        logger.error(e.getMessage() );
+                        continue;
+                    } catch (ResourceNotFoundException e1) {
+                        logger.error(e1.getMessage() );
+                        continue;
+                    } catch (IOException e) {
+                        logger.error("error getting plaintext.");
+                        continue;
                     }
                     
+                    CountingHashtable tags = null;
                     try {
-                        CountingHashtable tags = tagger.getTags();
-                    } catch (IOException e2) {
-                        System.err.println("error tagging " + url);
+                        tags = tagger.getTags();
+                    } catch (TaggerException e) {
+                        logger.error(e.getMessage() );
+                        continue;
+                    } catch (IOException e1) {
+                        logger.error(e1.getMessage());
+                        continue;
+                    }
+                    
+                    TagFilter tagFilter = new FrequencyTagFilter(tags);
+                    List filteredTags = tagFilter.getFilteredTags();
+                    
+                    if (logger.isDebugEnabled() ) {
+	                    for (Iterator i = filteredTags.iterator(); i.hasNext(); ) {
+	                        Map.Entry e = (Entry) i.next();
+	                        TaggedLemma tl = (TaggedLemma) e.getKey();
+	
+	                        System.out.println(tl.getLemma() + ": " + tl.getTag() + " (" + e.getValue() + ")");
+	                    }
                     }
 	            }
             }
@@ -118,11 +169,13 @@ public class Extractor {
         }
         
         _connection.close();
+        System.out.println("done.");
     }
-    
+
     public static void main(String[] args) throws SQLException {
+        ApplicationConfiguration.initInstance();
+        config = ApplicationConfiguration.getConfiguration();
+        logger = LogHelper.getLogger();
         new Extractor().go();
     }
-//    ~/Projects/studienarbeit/TreeTagger/cmd/tt-inca text|grep -v -f removedTags|grep "^[A-Z]" 
-
 }

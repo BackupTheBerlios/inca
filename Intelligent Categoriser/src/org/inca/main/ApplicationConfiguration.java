@@ -12,12 +12,6 @@ import org.inca.util.logging.LogHelper;
  */
 
 public class ApplicationConfiguration {
-
-    /**
-     * 
-     * @uml.property name="_instance"
-     * @uml.associationEnd multiplicity="(0 1)"
-     */
     private static ApplicationConfiguration _instance = null;
 
     final private static String _configFilename = "config.xml";

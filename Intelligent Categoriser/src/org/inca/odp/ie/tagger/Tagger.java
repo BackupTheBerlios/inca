@@ -13,9 +13,9 @@ import org.inca.util.CountingHashtable;
 public abstract class Tagger {
     protected StringBuffer _data = null;
 
-    public Tagger(StringBuffer data) {
+    public Tagger(StringBuffer data) {        
         this._data = data;
     }
     
-    abstract public CountingHashtable getTags() throws IOException;
+    abstract public CountingHashtable getTags() throws TaggerException, IOException;
 }

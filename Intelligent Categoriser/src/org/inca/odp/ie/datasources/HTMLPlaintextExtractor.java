@@ -12,7 +12,11 @@ import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLEditorKit.ParserCallback;
 import javax.swing.text.html.parser.ParserDelegator;
 
+import org.apache.log4j.Logger;
+import org.inca.util.logging.LogHelper;
+
 public class HTMLPlaintextExtractor extends PlaintextExtractor {
+    private static Logger logger = LogHelper.getLogger();
     public HTMLPlaintextExtractor(String data) {
         super(data);
     }
@@ -73,9 +77,9 @@ public class HTMLPlaintextExtractor extends PlaintextExtractor {
 	    
 	    private void printIndent(String s) {
 	        for (int i = 0; i < _depth; i++) {
-	            System.out.print(" ");
+	            logger.debug(" ");
 	        }
-	        System.out.println(s);
+	        logger.debug(s);
 	    }
 	    
 	    public void handleStartTag(HTML.Tag t, MutableAttributeSet a, int pos) {
@@ -87,11 +91,17 @@ public class HTMLPlaintextExtractor extends PlaintextExtractor {
 	        if (_ignoredTags.containsKey(t) && !_ignoredTag) {
 	            _currentIgnoredTag = t;
 	            _ignoredTag = true;
-	            printIndent("ignored node: " + t.toString());
+	            if (logger.isDebugEnabled() ) {
+	                printIndent("ignored node: " + t.toString());
+	            }
 	        } else if ( _ignoredTag ){
-	            printIndent("ignored: " + t.toString());
+	            if (logger.isDebugEnabled() ) {
+	                printIndent("ignored: " + t.toString());
+	            }
 	        } else {
-	            printIndent("tag: " + t.toString() );
+	            if (logger.isDebugEnabled() ) {
+	                printIndent("tag: " + t.toString() );
+	            }
 	        }
 	        _depth++;            
 	    }
@@ -103,20 +113,28 @@ public class HTMLPlaintextExtractor extends PlaintextExtractor {
 	        }
 	
 	        if ( t.equals(_currentIgnoredTag) && _ignoredTag ) {              
-	            printIndent("end ignored node: " + t.toString() );
+	            if (logger.isDebugEnabled() ) {
+	                printIndent("end ignored node: " + t.toString() );
+	            }
 	            _ignoredTag = false;
 	            _currentIgnoredTag = null;
 	        } else if ( _ignoredTag ) {
-	            printIndent("end ignored: " + t.toString());
+	            if (logger.isDebugEnabled() ) {
+	                printIndent("end ignored: " + t.toString());
+	            }
 	        } else {
-	            printIndent("end tag: " + t.toString() );
+	            if (logger.isDebugEnabled() ) {
+	                printIndent("end tag: " + t.toString() );
+	            }
 	        }
 	    }
 	    
 	    public void handleText(char[] data, int pos) {
 	        if ( !_ignoredTag ) {
-	            printIndent("text: " + new String(data));
-	            printIndent("pos: " + pos);
+	            if (logger.isDebugEnabled() ) {
+	                printIndent("text: " + new String(data));
+	                printIndent("pos: " + pos);
+	            }
 	            _text.append(data);
 	        }
 	    }
