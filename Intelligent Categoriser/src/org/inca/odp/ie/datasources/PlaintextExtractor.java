@@ -1,7 +1,7 @@
 /*
  * Created on Feb 21, 2005 6:12:15 PM
  */
-package org.inca.odp.ie;
+package org.inca.odp.ie.datasources;
 
 import java.io.IOException;
 

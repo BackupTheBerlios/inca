@@ -15,7 +15,10 @@ import java.sql.Statement;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.inca.odp.ie.tagger.Tagger;
+import org.inca.odp.ie.tagger.TreeTagger;
 import org.inca.util.CollisionableHashtable;
+import org.inca.util.CountingHashtable;
 
 /**
  * @author achim
@@ -104,7 +107,7 @@ public class Extractor {
                     }
                     
                     try {
-                        CollisionableHashtable tags = tagger.getTags();
+                        CountingHashtable tags = tagger.getTags();
                     } catch (IOException e2) {
                         System.err.println("error tagging " + url);
                     }

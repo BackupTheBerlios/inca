@@ -1,7 +1,7 @@
 /*
  * Created on Feb 21, 2005 6:14:41 PM
  */
-package org.inca.odp.ie;
+package org.inca.odp.ie.datasources;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -15,7 +15,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-class XMLPlaintextExtractor extends PlaintextExtractor {
+public class XMLPlaintextExtractor extends PlaintextExtractor {
     private final static String AELFRED_SAX_DRIVER  = "gnu.xml.aelfred2.SAXDriver";
 
     public XMLPlaintextExtractor(String data) {

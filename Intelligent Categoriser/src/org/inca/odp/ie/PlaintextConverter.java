@@ -5,7 +5,6 @@ package org.inca.odp.ie;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -15,6 +14,9 @@ import java.util.Hashtable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.inca.odp.ie.datasources.EntityMapper;
+import org.inca.odp.ie.datasources.PlaintextExtractor;
+import org.inca.odp.ie.datasources.XMLPlaintextExtractor;
 import org.inca.util.net.HTTPReader;
 
 import com.quiotix.html.parser.ParseException;
@@ -26,11 +28,11 @@ public class PlaintextConverter {
     private URL _url = null;
     private Pattern _whitespace = Pattern.compile("\\s+");
     
-    private static final Hashtable MimetypeMapping = new Hashtable();
+    private static final Hashtable MIMETYPE_MAPPING = new Hashtable();
     
     static {
-        MimetypeMapping.put("text/html", XMLPlaintextExtractor.class);
-        MimetypeMapping.put("text/xml", XMLPlaintextExtractor.class);
+        MIMETYPE_MAPPING.put("text/html", XMLPlaintextExtractor.class);
+        MIMETYPE_MAPPING.put("text/xml", XMLPlaintextExtractor.class);
     }
         
     public PlaintextConverter(URL url) {
@@ -38,8 +40,8 @@ public class PlaintextConverter {
 	}
     
     private PlaintextExtractor getInstanceForContentType(String contentType, String data) throws NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        if (MimetypeMapping.containsKey(contentType) ) {
-            Class c = (Class) MimetypeMapping.get(contentType);
+        if (MIMETYPE_MAPPING.containsKey(contentType) ) {
+            Class c = (Class) MIMETYPE_MAPPING.get(contentType);
             Constructor constructor = c.getConstructor(new Class[] { String.class } );
             
             return (PlaintextExtractor)constructor.newInstance(new Object[] { data } );

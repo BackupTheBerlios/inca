@@ -1,7 +1,7 @@
 /*
  * Created on Feb 21, 2005 6:14:24 PM
  */
-package org.inca.odp.ie;
+package org.inca.odp.ie.datasources;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -11,7 +11,6 @@ import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLEditorKit.ParserCallback;
 import javax.swing.text.html.parser.ParserDelegator;
-
 
 public class HTMLPlaintextExtractor extends PlaintextExtractor {
     public HTMLPlaintextExtractor(String data) {

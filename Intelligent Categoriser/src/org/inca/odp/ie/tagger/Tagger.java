@@ -1,11 +1,11 @@
 /*
  * Created on Feb 17, 2005 2:56:26 PM
  */
-package org.inca.odp.ie;
+package org.inca.odp.ie.tagger;
 
 import java.io.IOException;
 
-import org.inca.util.CollisionableHashtable;
+import org.inca.util.CountingHashtable;
 
 /**
  * @author achim
@@ -17,5 +17,5 @@ public abstract class Tagger {
         this._data = data;
     }
     
-    abstract public CollisionableHashtable getTags() throws IOException;
+    abstract public CountingHashtable getTags() throws IOException;
 }

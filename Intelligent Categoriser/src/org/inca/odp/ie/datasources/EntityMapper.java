@@ -1,7 +1,7 @@
 /*
  * Created on Feb 21, 2005 8:51:03 PM
  */
-package org.inca.odp.ie;
+package org.inca.odp.ie.datasources;
 
 import java.util.Hashtable;
 import java.util.Iterator;

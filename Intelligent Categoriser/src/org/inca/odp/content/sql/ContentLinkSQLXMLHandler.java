@@ -227,7 +227,7 @@ public class ContentLinkSQLXMLHandler extends DefaultHandler {
         long _currentTime = System.currentTimeMillis();
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        long elapsedTime = System.currentTimeMillis() - _startTime;
+        long elapsedTime = _currentTime - _startTime;
         System.out.println("time: "
                 + dateFormat.format(new Date(elapsedTime)));
         
