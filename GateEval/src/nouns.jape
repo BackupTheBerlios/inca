@@ -1,0 +1,8 @@
+Phase: NounExtraction
+
+Rule: Nouns
+(
+	{Token.category == "NN"}
+)
+:Token -->
+:Token.Category = {Category="noun", rule="Nouns"}
