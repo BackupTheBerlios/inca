@@ -50,6 +50,42 @@ public class DatabaseConnection {
 
    /** The used connection porperties. */
    private static Properties s_properties;
+   
+   /**
+    * Creates the one and only DatabaseConnection instance (Singleton). If the
+    * method is called a 2nd time a new DatabaseConnection instance is created.
+    * 
+    * @param driver name of the driver class
+    * @param url the database url
+    * @param user database user
+    * @üaram password database password
+    * @throws SQLException
+    * @throws ClassNotFoundException
+    */
+   public static void initDatabaseConnection(String driver,
+                                             String url,
+                                             String user,
+                                             String password)
+         throws SQLException, ClassNotFoundException {
+
+      // store connection properties
+      s_driver = driver;
+      s_url = url;
+      s_properties = new Properties();
+      s_properties.put("user", user);
+      s_properties.put("password", password);
+
+      // create sharedConnection
+      if (s_sharedConnection != null) {
+         try {
+            s_sharedConnection.closeConnection();
+         } catch (SQLException e) {
+            logger.warn("Error while closing shared connection. " + e);
+         }
+      }
+      // this might throw an Exception
+      s_sharedConnection = new DatabaseConnection(driver, url, s_properties);
+   }
 
    /**
     * Creates the one and only DatabaseConnection instance (Singleton). If the
@@ -322,6 +358,10 @@ public class DatabaseConnection {
          throws SQLException {
       m_connection.setAutoCommit(autoCommit);
    }
+   
+   public Statement createStatement() throws SQLException {
+       return m_connection.createStatement();
+   }
 
    //
    // prepared statements
@@ -334,6 +374,15 @@ public class DatabaseConnection {
    public PreparedStatement createPrepared(String sql)
          throws SQLException {
       return m_connection.prepareStatement(sql);
+   }
+   
+   /**
+    * Creates a JDBC PreparedStatement and gives direct access to the JDBC
+    * interface.
+    */
+   public PreparedStatement createPrepared(String sql, int i)
+         throws SQLException {
+      return m_connection.prepareStatement(sql, i);
    }
 
    /**
