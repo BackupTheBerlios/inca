@@ -7,7 +7,10 @@ import gate.Document;
 import gate.Factory;
 import gate.FeatureMap;
 import gate.Gate;
+import gate.GateConstants;
+import gate.Node;
 import gate.ProcessingResource;
+import gate.annotation.NodeImpl;
 import gate.creole.ANNIEConstants;
 import gate.creole.ANNIETransducer;
 import gate.creole.SerialAnalyserController;
@@ -102,10 +105,26 @@ public class StandAloneAnnie {
         while (iter.hasNext()) {
             Document doc = (Document) iter.next();
             AnnotationSet defaultAnnotSet = doc.getAnnotations();
+            
+            String originalContent = (String) doc.getFeatures().get(GateConstants.ORIGINAL_DOCUMENT_CONTENT_FEATURE_NAME);
+            
             Set annotTypesRequired = new HashSet();
+            annotTypesRequired.add("Person");
+            AnnotationSet people = defaultAnnotSet.get(annotTypesRequired);
 
             FeatureMap features = Factory.newFeatureMap();
             features.put("category", "NN");
+            
+            for (Iterator iterator = people.iterator(); iterator.hasNext();) {
+                Annotation element = (Annotation) iterator.next();
+                FeatureMap f = element.getFeatures();
+                
+                Node startNode = element.getStartNode();
+                Node endNode = (NodeImpl) element.getEndNode();
+               
+                String person = originalContent.substring((int)startNode.getOffset().longValue(), (int)endNode.getOffset().longValue());
+                System.out.println(person);
+            }
 
             AnnotationSet annotSet = defaultAnnotSet.get("Token", features);
             Hashtable nounFrequency = new Hashtable();
