@@ -9,8 +9,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -21,13 +19,11 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * @author achim extract links from categories. writes a dmoz-content file
- *         listing all categories with links and creates the odp category
- *         structure on filesystem. linklists an entry e of category c are
- *         stored under content/c/sha1(e)
- */
-/**
  * @author achim
+ * extract links from categories. writes a dmoz-content file
+ * listing all categories with links and creates the odp category
+ * structure on filesystem. linklists an entry e of category c are
+ * stored under content/c/sha1(e)
  */
 public class ContentLinkXMLHandler extends DefaultHandler {
     private final static String DMOZ_BASE = "/home/achim/Projects/studienarbeit/odp/content";
@@ -36,7 +32,6 @@ public class ContentLinkXMLHandler extends DefaultHandler {
     private String _currentTopicID = "";
     private String _currentLink = "";
 
-    
     /**
      * there are two topic tags: one nested in externalPage and one standing for itself. 
      */
