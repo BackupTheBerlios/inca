@@ -89,4 +89,6 @@ public class NounExtractor {
     }
 //    SELECT linkId FROM cat2link INNER JOIN categories ON cat2link.catId=categories.id WHERE categories.name='/Arts/Performing_Arts/Acting/Actors_and_Actresses/B/Brosnan,_Pierce'; 
 //    SELECT url FROM links,cat2link INNER JOIN categories ON cat2link.catId=categories.id WHERE categories.name='/Arts/Performing_Arts/Acting/Actors_and_Actresses/B/Brosnan,_Pierce' AND links.id=cat2link.linkId
+//    ~/Projects/studienarbeit/TreeTagger/cmd/tt-inca text|grep -v -f removedTags|grep "^[A-Z]" 
+
 }
